@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Task Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .container {
+            background: white;
+            width: 600px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        input {
+            width: 45%;
+            padding: 10px;
+            margin: 5px 2%;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #ff4d4d;
+            color: white;
+        }
+
+        .task {
+            background: #f4f6ff;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .task b {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Smart Task Manager</h1>
+
+    <input type="text" id="title" placeholder="Title">
+    <input type="text" id="description" placeholder="Description">
+    <button class="add-btn" onclick="addTask()">Add Task</button>
+
+    <div id="taskList"></div>
+</div>
+
+<script>
+
+    async function loadTasks() {
+        const response = await fetch('/api/tasks');
+        const tasks = await response.json();
+
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
+
+        tasks.forEach(task => {
+            taskList.innerHTML += `
+                <div class="task">
+                    <b>${task.title}</b><br>
+                    ${task.description}<br>
+                    Status: ${task.completed ? "✅ Completed" : "❌ Pending"}
+                    <br><br>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                </div>
+            `;
+        });
+    }
+
+    async function addTask() {
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+
+        await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: title,
+                description: description,
+                completed: false
+            })
+        });
+
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
+
+        loadTasks();
+    }
+
+    async function deleteTask(id) {
+        await fetch(`/api/tasks/${id}`, {
+            method: 'DELETE'
+        });
+
+        loadTasks();
+    }
+
+    loadTasks();
+
+</script>
+
+</body>
+</html>
